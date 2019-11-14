@@ -10,3 +10,4 @@ abstract class Message(
 )
 
 class StartTurn(val currentPlayer: Player) : Message(God, currentPlayer)
+class EndTurn(val currentPlayer: Player) : Message(God, currentPlayer)

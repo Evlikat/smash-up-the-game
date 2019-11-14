@@ -1,21 +1,22 @@
 package net.evlikatgames.smashupthegame.card
 
-import net.evlikatgames.smashupthegame.Zone
+class PlayerDeck(
+    initCards: List<FactionCard>,
+    discardPileCardReshuffle: () -> List<FactionCard>
+) : RecurringDeck<FactionCard>(initCards, discardPileCardReshuffle) {
 
-class PlayerDeck(initCards: List<FactionCard>) : Deck<FactionCard>(initCards), Zone {
-
-    private var topCardRevealed = false
+    private var topCardsRevealed = 0
 
     fun revealTopCard() {
-        topCardRevealed = true
+        topCardsRevealed = 1
     }
 
     val revealedCard: FactionCard?
         get() {
-            return if (topCardRevealed) cards.firstOrNull() else null
+            return if (topCardsRevealed > 0) cards.firstOrNull() else null
         }
 
     override fun afterDraw(card: FactionCard) {
-        topCardRevealed = false
+        topCardsRevealed--
     }
 }

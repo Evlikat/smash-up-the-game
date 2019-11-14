@@ -1,6 +1,8 @@
 package net.evlikatgames.smashupthegame
 
 import net.evlikatgames.smashupthegame.game.GameObject
+import net.evlikatgames.smashupthegame.resource.PlayerResource
+import net.evlikatgames.smashupthegame.resource.PlayerResourcePool
 
 class Player(
     val factions: PlayerFactions,

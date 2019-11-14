@@ -1,9 +1,9 @@
 package net.evlikatgames.smashupthegame.sets.core.robots.cards
 
-import net.evlikatgames.smashupthegame.PlayExtraMinionWithRestrictedPower
 import net.evlikatgames.smashupthegame.card.MinionCard
 import net.evlikatgames.smashupthegame.game.GameContext
 import net.evlikatgames.smashupthegame.messaging.AfterMinionIsPlayed
+import net.evlikatgames.smashupthegame.resource.PlayExtraMinionWithRestrictedPower
 
 class ZapBot : MinionCard(basePower = 2) {
 

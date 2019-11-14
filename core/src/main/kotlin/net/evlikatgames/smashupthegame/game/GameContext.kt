@@ -1,12 +1,13 @@
 package net.evlikatgames.smashupthegame.game
 
 import net.evlikatgames.smashupthegame.MinionState
+import net.evlikatgames.smashupthegame.OngoingActionState
 import net.evlikatgames.smashupthegame.Player
 import net.evlikatgames.smashupthegame.card.BaseCard
 import net.evlikatgames.smashupthegame.card.FactionCard
 import net.evlikatgames.smashupthegame.card.MinionCard
-import net.evlikatgames.smashupthegame.messaging.Action
 import net.evlikatgames.smashupthegame.messaging.Command
+import net.evlikatgames.smashupthegame.messaging.Intention
 
 interface GameContext {
 
@@ -16,11 +17,11 @@ interface GameContext {
 
     fun askPlayerConfirm(player: Player, pendingCommand: Command): Boolean
 
-    fun <T: GameObject> askPlayerChooseTarget(player: Player, pendingAction: Action, validTargets: List<T>): T
+    fun <T: GameObject> askPlayerChooseTarget(player: Player, pendingIntention: Intention, validTargets: List<T>): T
 
     fun <T: GameObject> askPlayerChooseSomeTargets(
         player: Player,
-        pendingAction: Action,
+        pendingIntention: Intention,
         validTargets: List<T>,
         numberOfTargets: Int = validTargets.size
     ): List<T>
@@ -34,6 +35,8 @@ interface GameContext {
     fun topCardOfPlayerDeck(player: Player): FactionCard?
 
     fun minionsOnBase(base: Base): List<MinionState>
+
+    fun actionsOnBase(base: Base): List<OngoingActionState>
 
     fun minionsInPlay(): List<MinionState>
 

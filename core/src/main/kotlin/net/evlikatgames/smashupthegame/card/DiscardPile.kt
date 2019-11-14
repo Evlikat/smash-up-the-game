@@ -1,5 +1,10 @@
 package net.evlikatgames.smashupthegame.card
 
-class DiscardPile : Deck<FactionCard>(mutableListOf()) {
-    override val visibleCards: List<FactionCard> get() = cards
+import net.evlikatgames.smashupthegame.CardPile
+
+class DiscardPile<C : Card> : CardPile<C>(mutableListOf()) {
+    override val visibleCards: List<C> get() = cards
+    fun clear() {
+        cards.clear()
+    }
 }

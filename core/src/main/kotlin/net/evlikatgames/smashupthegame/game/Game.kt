@@ -3,6 +3,7 @@ package net.evlikatgames.smashupthegame.game
 import net.evlikatgames.smashupthegame.*
 import net.evlikatgames.smashupthegame.card.*
 import net.evlikatgames.smashupthegame.messaging.*
+import net.evlikatgames.smashupthegame.resource.PlayerResourcePool
 import net.evlikatgames.smashupthegame.sets.core.bases.JungleOasis
 import net.evlikatgames.smashupthegame.sets.core.bases.TheHomeworld
 import java.util.*
@@ -11,15 +12,19 @@ class Game(
     private val players: List<Player>
 ) : GameContext {
 
-    private val baseDeck: Deck<BaseCard> = Deck(listOf(
-        TheHomeworld(),
-        JungleOasis()
-    ))
-    private val scoreBoard = ScoreBoard(players, winPoints = 15)
+    companion object {
+        const val WIN_POINTS = 15
+        const val HAND_CAPACITY = 10
+    }
+
+    private val scoreBoard = ScoreBoard(players, winPoints = WIN_POINTS)
+
+    private val baseDiscardPile: DiscardPile<BaseCard> = createBaseDiscardPile()
+    private val baseDeck: RecurringDeck<BaseCard> = createBaseDeck(baseDiscardPile)
 
     private val playerHands: MutableMap<Player, PlayerHand> = IdentityHashMap()
     private val playerDecks: MutableMap<Player, PlayerDeck> = IdentityHashMap()
-    private val discardPiles: MutableMap<Player, DiscardPile> = IdentityHashMap()
+    private val discardPiles: MutableMap<Player, DiscardPile<FactionCard>> = IdentityHashMap()
     private val activeBases: MutableMap<Base, BaseState> = IdentityHashMap()
     private val cardLocations: MutableMap<FactionCard, Zone> = IdentityHashMap()
 
@@ -27,8 +32,9 @@ class Game(
         if (players.size !in 1..4) throw IllegalArgumentException("Wrong player number")
 
         players.forEach { player ->
-            playerDecks[player] = createPlayerDeck(player)
-            discardPiles[player] = createDiscardPile()
+            val discardPile = createPlayerDiscardPile()
+            discardPiles[player] = discardPile
+            playerDecks[player] = createPlayerDeck(player, discardPile)
         }
 
         repeat(players.size + 1) {
@@ -74,8 +80,25 @@ class Game(
     }
 
     private fun playPhase(currentPlayer: Player) {
-        currentPlayer.resourcePool = PlayerResourcePool()
-        // TODO
+        val pool = PlayerResourcePool()
+        currentPlayer.resourcePool = pool
+
+        loop@ while (true) {
+            val card = askToPlay(currentPlayer) ?: break
+            val resources = when (card) {
+                is MinionCard -> pool.selectResourceFor(card)
+                is ActionCard -> pool.selectResourceFor(card)
+                else -> TODO("Unknown card type")
+            }
+            val consumed = when {
+                resources.isEmpty() -> continue@loop
+                resources.size == 1 -> resources[0]
+                else -> // TODO: ask choose
+                    resources[0]
+            }
+            pool.consumeResource(consumed)
+        }
+        currentPlayer.resourcePool.clear()
     }
 
     private fun baseScorePhase(currentPlayer: Player) {
@@ -110,16 +133,35 @@ class Game(
             // TODO:
             //chosenBaseState.actionsInPlay.forEach { it.onMessage(AfterBaseScores(chosenBaseState), this) }
 
+            minionsOnBase(chosenBase).forEach { discardFactionCard(it.minion) }
+            actionsOnBase(chosenBase).forEach { discardFactionCard(it.action) }
+
+            discardBaseCard(chosenBaseCard)
+
+            val newBase = createBase(baseDeck.draw())
+            activeBases[newBase] = BaseState()
+
             scoringBases.remove(chosenBaseCard)
         }
     }
 
     private fun drawPhase(currentPlayer: Player) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        currentPlayer.drawsCards(numberOfCards = 2)
+        if (playerHands[currentPlayer]!!.size > HAND_CAPACITY) {
+            currentPlayer.discardsCards(numberOfCards = playerHands[currentPlayer]!!.size - HAND_CAPACITY)
+        }
     }
 
     private fun atEndOfTurnPhase(currentPlayer: Player) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        activeBases.forEach { base, baseState ->
+            // TODO: current player decides the order
+
+            // TODO: base.baseCard.sendMessage
+            baseState.minionsInPlay.forEach { m -> m.onMessage(EndTurn(currentPlayer), this) }
+
+            // TODO:
+            // baseState.actionsInPlay.forEach { m -> m.onMessage(EndTurn(currentPlayer)) }
+        }
     }
 
     override fun sendCommand(command: Command) {
@@ -134,6 +176,10 @@ class Game(
     override fun minionsOnBase(base: Base): List<MinionState> = (activeBases[base]
         ?: throw IllegalStateException("Base is not in play"))
         .minionsInPlay
+
+    override fun actionsOnBase(base: Base): List<OngoingActionState> = (activeBases[base]
+        ?: throw IllegalStateException("Base is not in play"))
+        .actionsInPlay
 
     override fun minionsInPlay(): List<MinionState> = activeBases.flatMap { it.value.minionsInPlay }
 
@@ -162,7 +208,7 @@ class Game(
         return true
     }
 
-    override fun <T : GameObject> askPlayerChooseTarget(player: Player, pendingAction: Action, validTargets: List<T>): T {
+    override fun <T : GameObject> askPlayerChooseTarget(player: Player, pendingIntention: Intention, validTargets: List<T>): T {
         if (validTargets.isEmpty()) {
             throw IllegalArgumentException("No valid targets")
         }
@@ -173,7 +219,7 @@ class Game(
         return validTargets.first()
     }
 
-    override fun <T : GameObject> askPlayerChooseSomeTargets(player: Player, pendingAction: Action, validTargets: List<T>, numberOfTargets: Int): List<T> {
+    override fun <T : GameObject> askPlayerChooseSomeTargets(player: Player, pendingIntention: Intention, validTargets: List<T>, numberOfTargets: Int): List<T> {
         return validTargets.take(numberOfTargets)
     }
 
@@ -182,17 +228,38 @@ class Game(
         return emptyList()
     }
 
-    private fun createPlayerDeck(player: Player): PlayerDeck {
+    private fun createBaseDeck(discardPile: DiscardPile<BaseCard>): RecurringDeck<BaseCard> {
+        return RecurringDeck(listOf(
+            TheHomeworld(),
+            JungleOasis()
+        )) {
+            val allCards = discardPile.visibleCards.toList()
+            discardPile.clear()
+            // TODO: notify cards moved
+            allCards
+        } // TODO:
+    }
+
+    private fun createPlayerDeck(player: Player, discardPile: DiscardPile<FactionCard>): PlayerDeck {
         val initCards = player.factions.toList().flatMap { it.cards }
         initCards.forEach { it.owner = player }
-        return PlayerDeck(initCards) // TODO:
+        return PlayerDeck(initCards) {
+            val allCards = discardPile.visibleCards.toList()
+            discardPile.clear()
+            // TODO: notify cards moved
+            allCards
+        } // TODO:
     }
 
     private fun createBase(baseCard: BaseCard): Base {
         return Base(baseCard) // TODO:
     }
 
-    private fun createDiscardPile(): DiscardPile {
+    private fun createPlayerDiscardPile(): DiscardPile<FactionCard> {
+        return DiscardPile() // TODO:
+    }
+
+    private fun createBaseDiscardPile(): DiscardPile<BaseCard> {
         return DiscardPile() // TODO:
     }
 
@@ -201,9 +268,16 @@ class Game(
         val currentLocation = cardLocations[card]
         when (currentLocation) {
             is Base -> activeBases[currentLocation]?.remove(card)
+            is PlayerHand -> playerHands[card.owner]?.remove(card)
             else -> TODO("Move from $currentLocation to discardPile is not implemented")
         }
         cardLocations[card] = discardPile
+        discardPile.add(card)
+    }
+
+    private fun discardBaseCard(card: BaseCard) {
+        activeBases.remove(baseByCard(card))
+        baseDiscardPile.add(card)
     }
 
     private fun cleanUpMinionOngoingEffects(minionState: MinionState) {
@@ -212,12 +286,25 @@ class Game(
         }
     }
 
+    /**
+     * returns null if end of turn
+     */
+    private fun askToPlay(currentPlayer: Player): FactionCard? {
+        // TODO:
+        return playerHands[currentPlayer]!!.allCards.firstOrNull()
+    }
+
     private fun Player.drawsCards(numberOfCards: Int) {
         val deck = playerDecks[this]!!
         val hand = playerHands[this]!!
         repeat(numberOfCards) {
             hand.add(deck.draw())
         }
+    }
+
+    private fun Player.discardsCards(numberOfCards: Int) {
+        askPlayerChooseSomeTargets(this, DiscardCard(), playerHands[this]!!.allCards, numberOfCards)
+            .forEach { discardFactionCard(it) }
     }
 
     private fun handleDestroyMinion(command: DestroyTargetMinion) {
