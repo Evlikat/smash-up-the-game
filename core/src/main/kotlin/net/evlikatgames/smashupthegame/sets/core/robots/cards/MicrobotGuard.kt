@@ -9,7 +9,7 @@ import net.evlikatgames.smashupthegame.messaging.DestroyTargetMinion
 class MicrobotGuard : MinionCard(basePower = 1, tribes = setOf(MICROBOT)) {
 
     override fun onEntersPlay(message: AfterMinionIsPlayed, ctx: GameContext) {
-        val minionsOnBase = ctx.minionsOnBase(ctx.baseByCard(message.baseCard))
+        val minionsOnBase = ctx.baseByCard(message.baseCard).minionsInPlay
         val (playerMinions, otherMinions) = minionsOnBase.partition { it.controller == message.player }
         val playerMinionNumber = playerMinions.size
         val validTargets = otherMinions.filter { it.effectivePower < playerMinionNumber }

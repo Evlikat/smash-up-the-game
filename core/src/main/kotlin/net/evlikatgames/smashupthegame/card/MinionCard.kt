@@ -2,10 +2,7 @@ package net.evlikatgames.smashupthegame.card
 
 import net.evlikatgames.smashupthegame.effect.CardOngoingEffect
 import net.evlikatgames.smashupthegame.game.GameContext
-import net.evlikatgames.smashupthegame.messaging.AfterMinionDestroyed
-import net.evlikatgames.smashupthegame.messaging.AfterMinionIsPlayed
-import net.evlikatgames.smashupthegame.messaging.BeforeMinionDestroyed
-import net.evlikatgames.smashupthegame.messaging.Message
+import net.evlikatgames.smashupthegame.messaging.*
 
 abstract class MinionCard(
     val basePower: Int,
@@ -37,6 +34,20 @@ abstract class MinionCard(
                     onAnotherMinionDestroyed(message, ctx)
                 }
             }
+            is BeforeBaseScores -> {
+                if (ctx.baseOfMinion(this) == message.targetBaseState.base) {
+                    onBaseScoring(message, ctx)
+                } else {
+                    onAnotherBaseScoring(message, ctx)
+                }
+            }
+            is AfterBaseScores -> {
+                if (ctx.baseOfMinion(this) == message.targetBaseState.base) {
+                    onBaseScored(message, ctx)
+                } else {
+                    onAnotherBaseScored(message, ctx)
+                }
+            }
         }
     }
 
@@ -48,4 +59,10 @@ abstract class MinionCard(
 
     open fun onDestroyed(message: AfterMinionDestroyed, ctx: GameContext) {}
     open fun onAnotherMinionDestroyed(message: AfterMinionDestroyed, ctx: GameContext) {}
+
+    open fun onBaseScoring(message: BeforeBaseScores, ctx: GameContext) {}
+    open fun onAnotherBaseScoring(message: BeforeBaseScores, ctx: GameContext) {}
+
+    open fun onBaseScored(message: AfterBaseScores, ctx: GameContext) {}
+    open fun onAnotherBaseScored(message: AfterBaseScores, ctx: GameContext) {}
 }

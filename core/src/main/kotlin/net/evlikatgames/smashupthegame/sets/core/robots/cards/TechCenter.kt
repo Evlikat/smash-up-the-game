@@ -9,13 +9,14 @@ import net.evlikatgames.smashupthegame.messaging.PlayerDrawsCards
 
 class TechCenter : ActionCard() {
 
-    override fun availableTargets(player: Player, ctx: GameContext): Collection<GameObject> {
+    override fun availableTargets(player: Player, targetIndex: Int, previouslySelectedObjects: List<GameObject>, ctx: GameContext): Collection<GameObject> {
         return ctx.bases.map { it.baseCard }
     }
 
-    override fun play(player: Player, target: Collection<GameObject>, ctx: GameContext) {
+    override fun play(player: Player, target: List<GameObject>, ctx: GameContext) {
         val baseCard = (target.first() as BaseCard)
-        val minionNumberOnBase = ctx.minionsOnBase(ctx.baseByCard(baseCard) ?: return)
+        val minionNumberOnBase = ctx.baseByCard(baseCard)
+            .minionsInPlay
             .count { it.controller == player }
         ctx.sendCommand(PlayerDrawsCards(source = this, targetPlayer = player, numberOfCards = minionNumberOnBase))
     }

@@ -1,15 +1,19 @@
 package net.evlikatgames.smashupthegame.game
 
-import net.evlikatgames.smashupthegame.*
+import net.evlikatgames.smashupthegame.MinionState
+import net.evlikatgames.smashupthegame.Player
+import net.evlikatgames.smashupthegame.PlayerHand
+import net.evlikatgames.smashupthegame.Zone
 import net.evlikatgames.smashupthegame.card.*
 import net.evlikatgames.smashupthegame.messaging.*
 import net.evlikatgames.smashupthegame.resource.PlayerResourcePool
 import net.evlikatgames.smashupthegame.sets.core.bases.JungleOasis
 import net.evlikatgames.smashupthegame.sets.core.bases.TheHomeworld
 import java.util.*
+import kotlin.collections.HashSet
 
 class Game(
-    private val players: List<Player>
+    override val players: List<Player>
 ) : GameContext {
 
     companion object {
@@ -25,7 +29,7 @@ class Game(
     private val playerHands: MutableMap<Player, PlayerHand> = IdentityHashMap()
     private val playerDecks: MutableMap<Player, PlayerDeck> = IdentityHashMap()
     private val discardPiles: MutableMap<Player, DiscardPile<FactionCard>> = IdentityHashMap()
-    private val activeBases: MutableMap<Base, BaseState> = IdentityHashMap()
+    private val activeBases: MutableSet<BaseState> = HashSet()
     private val cardLocations: MutableMap<FactionCard, Zone> = IdentityHashMap()
 
     init {
@@ -39,7 +43,7 @@ class Game(
 
         repeat(players.size + 1) {
             val newBase = createBase(baseDeck.draw())
-            activeBases[newBase] = BaseState()
+            activeBases.add(newBase)
         }
     }
 
@@ -68,7 +72,7 @@ class Game(
     }
 
     private fun atStartOfTurnPhase(currentPlayer: Player) {
-        activeBases.forEach { base, baseState ->
+        activeBases.forEach { baseState ->
             // TODO: current player decides the order
 
             // TODO: base.baseCard.sendMessage
@@ -102,17 +106,16 @@ class Game(
     }
 
     private fun baseScorePhase(currentPlayer: Player) {
-        val scoredBases = activeBases.filter { (base, baseState) ->
+        val scoredBases = activeBases.filter { baseState ->
             val totalMinionPower = baseState.minionsInPlay.sumBy { it.effectivePower }
-            totalMinionPower >= base.effectiveBreakPoints
+            totalMinionPower >= baseState.effectiveBreakPoints
         }
 
-        val scoringBases = scoredBases.keys.map { it.baseCard to it }.toMap(mutableMapOf())
+        val scoringBases = scoredBases.map { it.baseCard to it }.toMap(mutableMapOf())
 
         while (scoringBases.isNotEmpty()) {
             val chosenBaseCard = askPlayerChooseTarget(currentPlayer, ScoreBase(), scoringBases.keys.toList())
-            val chosenBase = scoringBases[chosenBaseCard]!!
-            val chosenBaseState = activeBases[chosenBase]!!
+            val chosenBaseState = scoringBases[chosenBaseCard]!!
 
             // TODO: consider order
             chosenBaseCard.beforeBaseScores()
@@ -133,13 +136,13 @@ class Game(
             // TODO:
             //chosenBaseState.actionsInPlay.forEach { it.onMessage(AfterBaseScores(chosenBaseState), this) }
 
-            minionsOnBase(chosenBase).forEach { discardFactionCard(it.minion) }
-            actionsOnBase(chosenBase).forEach { discardFactionCard(it.action) }
+            chosenBaseState.minionsInPlay.forEach { discardFactionCard(it.minion) }
+            chosenBaseState.actionsInPlay.forEach { discardFactionCard(it.action) }
 
             discardBaseCard(chosenBaseCard)
 
             val newBase = createBase(baseDeck.draw())
-            activeBases[newBase] = BaseState()
+            activeBases.add(newBase)
 
             scoringBases.remove(chosenBaseCard)
         }
@@ -153,7 +156,7 @@ class Game(
     }
 
     private fun atEndOfTurnPhase(currentPlayer: Player) {
-        activeBases.forEach { base, baseState ->
+        activeBases.forEach { baseState ->
             // TODO: current player decides the order
 
             // TODO: base.baseCard.sendMessage
@@ -173,18 +176,12 @@ class Game(
         }
     }
 
-    override fun minionsOnBase(base: Base): List<MinionState> = (activeBases[base]
-        ?: throw IllegalStateException("Base is not in play"))
-        .minionsInPlay
+    override fun minionState(minionCard: MinionCard): MinionState? = minionsInPlay().find { it.minion == minionCard }
 
-    override fun actionsOnBase(base: Base): List<OngoingActionState> = (activeBases[base]
-        ?: throw IllegalStateException("Base is not in play"))
-        .actionsInPlay
+    override fun minionsInPlay(): List<MinionState> = activeBases.flatMap { it.minionsInPlay }
 
-    override fun minionsInPlay(): List<MinionState> = activeBases.flatMap { it.value.minionsInPlay }
-
-    override fun baseByCard(baseCard: BaseCard): Base {
-        return activeBases.keys.find { it.baseCard == baseCard }
+    override fun baseByCard(baseCard: BaseCard): BaseState {
+        return activeBases.find { it.baseCard == baseCard }
             ?: throw IllegalArgumentException("Base not found")
     }
 
@@ -196,19 +193,41 @@ class Game(
         return discardPiles[player]!!.visibleCards
     }
 
-    override fun baseOfMinion(minionCard: MinionCard): Base = cardLocations[minionCard]
-        as? Base
+    override fun baseOfMinion(minionCard: MinionCard): BaseState = cardLocations[minionCard]
+        as? BaseState
         ?: throw IllegalStateException("Minion is not on a bases")
 
-    override val bases: Set<Base>
-        get() = activeBases.keys
+    override fun playerHand(targetPlayer: Player): Collection<FactionCard> {
+        return playerHands[targetPlayer]?.allCards ?: emptyList()
+    }
+
+    override val bases: Set<BaseState> get() = activeBases.toSet()
 
     override fun askPlayerConfirm(player: Player, pendingCommand: Command): Boolean {
         // TODO:
         return true
     }
 
-    override fun <T : GameObject> askPlayerChooseTarget(player: Player, pendingIntention: Intention, validTargets: List<T>): T {
+    override fun <T : GameObject> askPlayerChooseTarget(
+        player: Player,
+        pendingIntention: Intention,
+        validTargets: List<T>
+    ): T {
+        if (validTargets.isEmpty()) {
+            throw IllegalArgumentException("No valid targets")
+        }
+        if (validTargets.size == 1) {
+            return validTargets.first()
+        }
+        // TODO:
+        return validTargets.first()
+    }
+
+    override fun <T : GameObject> askPlayerChooseTargetOrDecline(
+        player: Player,
+        pendingIntention: Intention,
+        validTargets: List<T>
+    ): T? {
         if (validTargets.isEmpty()) {
             throw IllegalArgumentException("No valid targets")
         }
@@ -222,6 +241,8 @@ class Game(
     override fun <T : GameObject> askPlayerChooseSomeTargets(player: Player, pendingIntention: Intention, validTargets: List<T>, numberOfTargets: Int): List<T> {
         return validTargets.take(numberOfTargets)
     }
+
+    override val baseDeckCards: Collection<BaseCard> get() = baseDeck.visibleCards
 
     override fun cardsPlayedThisTurn(): List<FactionCard> {
         // TODO:
@@ -251,8 +272,8 @@ class Game(
         } // TODO:
     }
 
-    private fun createBase(baseCard: BaseCard): Base {
-        return Base(baseCard) // TODO:
+    private fun createBase(baseCard: BaseCard): BaseState {
+        return BaseState(baseCard) // TODO:
     }
 
     private fun createPlayerDiscardPile(): DiscardPile<FactionCard> {
@@ -267,7 +288,7 @@ class Game(
         val discardPile = discardPiles[card.owner]!!
         val currentLocation = cardLocations[card]
         when (currentLocation) {
-            is Base -> activeBases[currentLocation]?.remove(card)
+            is BaseState -> currentLocation.remove(card)
             is PlayerHand -> playerHands[card.owner]?.remove(card)
             else -> TODO("Move from $currentLocation to discardPile is not implemented")
         }
@@ -281,7 +302,7 @@ class Game(
     }
 
     private fun cleanUpMinionOngoingEffects(minionState: MinionState) {
-        activeBases.forEach { _, state ->
+        activeBases.forEach { state ->
             state.minionsInPlay.forEach { mip -> mip.removeOngoingEffectBySource(minionState) }
         }
     }

@@ -1,7 +1,6 @@
 package net.evlikatgames.smashupthegame.game
 
 import net.evlikatgames.smashupthegame.MinionState
-import net.evlikatgames.smashupthegame.OngoingActionState
 import net.evlikatgames.smashupthegame.Player
 import net.evlikatgames.smashupthegame.card.BaseCard
 import net.evlikatgames.smashupthegame.card.FactionCard
@@ -11,15 +10,25 @@ import net.evlikatgames.smashupthegame.messaging.Intention
 
 interface GameContext {
 
-    val bases: Set<Base>
+    val players: List<Player>
+
+    val bases: Set<BaseState>
+
+    val baseDeckCards: Collection<BaseCard>
 
     fun sendCommand(command: Command)
 
     fun askPlayerConfirm(player: Player, pendingCommand: Command): Boolean
 
-    fun <T: GameObject> askPlayerChooseTarget(player: Player, pendingIntention: Intention, validTargets: List<T>): T
+    fun <T : GameObject> askPlayerChooseTarget(player: Player,
+                                               pendingIntention: Intention,
+                                               validTargets: List<T>): T
 
-    fun <T: GameObject> askPlayerChooseSomeTargets(
+    fun <T : GameObject> askPlayerChooseTargetOrDecline(player: Player,
+                                                        pendingIntention: Intention,
+                                                        validTargets: List<T>): T?
+
+    fun <T : GameObject> askPlayerChooseSomeTargets(
         player: Player,
         pendingIntention: Intention,
         validTargets: List<T>,
@@ -34,15 +43,15 @@ interface GameContext {
      */
     fun topCardOfPlayerDeck(player: Player): FactionCard?
 
-    fun minionsOnBase(base: Base): List<MinionState>
-
-    fun actionsOnBase(base: Base): List<OngoingActionState>
+    fun minionState(minionCard: MinionCard): MinionState?
 
     fun minionsInPlay(): List<MinionState>
 
     fun cardsInPlayerDiscardPile(player: Player): List<FactionCard>
 
-    fun baseByCard(baseCard: BaseCard): Base
+    fun baseByCard(baseCard: BaseCard): BaseState
 
-    fun baseOfMinion(minionCard: MinionCard): Base
+    fun baseOfMinion(minionCard: MinionCard): BaseState
+
+    fun playerHand(targetPlayer: Player): Collection<FactionCard>
 }

@@ -8,7 +8,7 @@ import net.evlikatgames.smashupthegame.messaging.DestroyTargetMinion
 class NukeBot : MinionCard(basePower = 5) {
 
     override fun onDestroyed(message: AfterMinionDestroyed, ctx: GameContext) {
-        val minions = ctx.minionsOnBase(ctx.baseOfMinion(this))
+        val minions = ctx.baseOfMinion(this).minionsInPlay
         minions.forEach { minion ->
             ctx.sendCommand(DestroyTargetMinion(source = this, targetMinion = minion))
         }

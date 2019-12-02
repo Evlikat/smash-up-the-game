@@ -1,11 +1,17 @@
 package net.evlikatgames.smashupthegame.game
 
+import net.evlikatgames.smashupthegame.Zone
+import net.evlikatgames.smashupthegame.card.BaseCard
 import net.evlikatgames.smashupthegame.card.FactionCard
 
 class BaseState(
+    val baseCard: BaseCard,
     private val minions: MutableList<MinionCardInPlay> = mutableListOf(),
     private val actions: MutableList<OngoingActionCardInPlay> = mutableListOf()
-): GameObject {
+): GameObject, Zone {
+
+    val effectiveBreakPoints: Int get() = baseCard.breakPoints
+
     fun remove(card: FactionCard): Boolean {
         val removed = minions.removeIf { it.minion == card }
         if (removed) return true

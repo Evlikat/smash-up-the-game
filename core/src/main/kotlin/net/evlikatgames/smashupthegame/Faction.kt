@@ -1,6 +1,7 @@
 package net.evlikatgames.smashupthegame
 
 import net.evlikatgames.smashupthegame.card.FactionCard
+import net.evlikatgames.smashupthegame.sets.core.aliens.cards.*
 import net.evlikatgames.smashupthegame.sets.core.robots.cards.*
 
 sealed class Faction {
@@ -8,7 +9,24 @@ sealed class Faction {
 }
 
 object Zombie : Faction()
-object Aliens : Faction()
+object Aliens : Faction() {
+    override val cards: List<FactionCard>
+        get() = build(
+            1 x ::SupremeOverlord,
+            2 x ::Invader,
+            3 x ::Scout,
+            4 x ::Collector,
+            1 x ::Abduction,
+            2 x ::BeamUp,
+            1 x ::CropCircles,
+            2 x ::Disintegrator,
+            1 x ::Invasion,
+            1 x ::JammedSignal,
+            1 x ::Probe,
+            1 x ::Terraforming
+        )
+}
+
 object Wizards : Faction()
 object Pirates : Faction()
 object Ninjas : Faction()
