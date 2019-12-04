@@ -3,15 +3,15 @@ package net.evlikatgames.smashupthegame.game
 import net.evlikatgames.smashupthegame.Player
 import net.evlikatgames.smashupthegame.VictoryPointsDefinition
 
-fun <P: Any> calculateScore(
+fun <P : Any> calculateScore(
     victoryPointsDefinition: VictoryPointsDefinition,
-    currentPowerState: Map<P, Int>
-): Map<P, Int> {
-
-    val table = currentPowerState.values.sortedDescending()
-    return currentPowerState.mapValues { (_, power) ->
-        victoryPointsDefinition[(table.indexOf(power) + 1)]
-    }
+    rankings: Rankings<P>
+): Scores<P> {
+    return Scores(
+        rankings.mapValues { (_, rank) ->
+            victoryPointsDefinition[rank]
+        }
+    )
 }
 
 fun evaluateEffectivePowerByPlayers(chosenBaseState: BaseState): Map<Player, Int> {

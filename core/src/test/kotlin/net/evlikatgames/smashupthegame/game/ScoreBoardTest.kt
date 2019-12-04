@@ -41,10 +41,10 @@ class ScoreBoardTest {
 
     @Test
     fun `should gain vps and win`() {
-        val winner = scoreBoard.gainVictoryPoints(mapOf(
+        val winner = scoreBoard.gainVictoryPoints(Scores(mapOf(
             "A" to 16,
             "B" to 15
-        ))
+        )))
 
         assertThat(scoreBoard.currentScores).isEqualTo(
             mapOf("A" to 16, "B" to 15, "C" to 0)
@@ -54,10 +54,10 @@ class ScoreBoardTest {
 
     @Test
     fun `should gain vps and no winner`() {
-        val winner = scoreBoard.gainVictoryPoints(mapOf(
+        val winner = scoreBoard.gainVictoryPoints(Scores(mapOf(
             "A" to 15,
             "B" to 15
-        ))
+        )))
 
         assertThat(scoreBoard.currentScores).isEqualTo(
             mapOf("A" to 15, "B" to 15, "C" to 0)

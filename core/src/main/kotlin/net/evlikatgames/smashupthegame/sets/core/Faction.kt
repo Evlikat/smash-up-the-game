@@ -1,4 +1,4 @@
-package net.evlikatgames.smashupthegame
+package net.evlikatgames.smashupthegame.sets.core
 
 import net.evlikatgames.smashupthegame.card.FactionCard
 import net.evlikatgames.smashupthegame.sets.core.aliens.cards.*

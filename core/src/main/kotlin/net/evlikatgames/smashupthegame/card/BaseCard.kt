@@ -1,6 +1,10 @@
 package net.evlikatgames.smashupthegame.card
 
+import net.evlikatgames.smashupthegame.Player
 import net.evlikatgames.smashupthegame.VictoryPointsDefinition
+import net.evlikatgames.smashupthegame.game.GameContext
+import net.evlikatgames.smashupthegame.game.Rankings
+import net.evlikatgames.smashupthegame.game.Scores
 
 abstract class BaseCard(
     val breakPoints: Int,
@@ -11,13 +15,15 @@ abstract class BaseCard(
 
     }
 
-    open fun afterMinionIsPlayed(minion: MinionCard) {
+    open fun afterMinionIsPlayed(minion: MinionCard, ctx: GameContext) {
 
     }
 
-    open fun afterMinionDestroyed() {
+    open fun afterMinionDestroyed(minion: MinionCard, ctx: GameContext) {
 
     }
+
+    open fun bonusScore(rankings: Rankings<Player>, ctx: GameContext): Scores<Player> = Scores()
 
     open fun whenBaseScores() {
 
@@ -27,7 +33,7 @@ abstract class BaseCard(
 
     }
 
-    open fun afterBaseScores() {
+    open fun afterBaseScores(rankings: Rankings<Player>, ctx: GameContext) {
 
     }
 

@@ -15,7 +15,7 @@ class CropCircles : InstantActionCard() {
 
     override fun play(player: Player, target: List<GameObject>, ctx: GameContext) {
         val targetBase = target.first() as BaseState
-        ctx.minionsOnBase(targetBase.base).forEach { minionOnBase ->
+        targetBase.minionsInPlay.forEach { minionOnBase ->
             ctx.sendCommand(ReturnTargetMinionToItsOwnerHand(this, minionOnBase))
         }
     }

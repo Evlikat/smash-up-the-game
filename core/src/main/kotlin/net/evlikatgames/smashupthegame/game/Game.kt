@@ -7,8 +7,7 @@ import net.evlikatgames.smashupthegame.Zone
 import net.evlikatgames.smashupthegame.card.*
 import net.evlikatgames.smashupthegame.messaging.*
 import net.evlikatgames.smashupthegame.resource.PlayerResourcePool
-import net.evlikatgames.smashupthegame.sets.core.bases.JungleOasis
-import net.evlikatgames.smashupthegame.sets.core.bases.TheHomeworld
+import net.evlikatgames.smashupthegame.sets.core.BASES
 import java.util.*
 import kotlin.collections.HashSet
 
@@ -123,15 +122,17 @@ class Game(
             // TODO:
             //chosenBaseState.actionsInPlay.forEach { it.onMessage(BeforeBaseScores(chosenBaseState), this) }
 
-            val totalScore = calculateScore(
+            val rankings = Rankings.build(currentPowerState = evaluateEffectivePowerByPlayers(chosenBaseState))
+            val baseScore = calculateScore(
                 victoryPointsDefinition = chosenBaseCard.victoryPoints,
-                currentPowerState = evaluateEffectivePowerByPlayers(chosenBaseState)
+                rankings = rankings
             )
-            scoreBoard.gainVictoryPoints(totalScore)
+            val bonusScore = chosenBaseCard.bonusScore(rankings, this)
+            scoreBoard.gainVictoryPoints(baseScore + bonusScore)
                 ?.let { throw GameFinished(winner = it) }
 
             // TODO: consider order
-            chosenBaseCard.afterBaseScores()
+            chosenBaseCard.afterBaseScores(rankings, this)
             chosenBaseState.minionsInPlay.forEach { it.onMessage(AfterBaseScores(chosenBaseState), this) }
             // TODO:
             //chosenBaseState.actionsInPlay.forEach { it.onMessage(AfterBaseScores(chosenBaseState), this) }
@@ -250,10 +251,7 @@ class Game(
     }
 
     private fun createBaseDeck(discardPile: DiscardPile<BaseCard>): RecurringDeck<BaseCard> {
-        return RecurringDeck(listOf(
-            TheHomeworld(),
-            JungleOasis()
-        )) {
+        return RecurringDeck(BASES.toList()) {
             val allCards = discardPile.visibleCards.toList()
             discardPile.clear()
             // TODO: notify cards moved

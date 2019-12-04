@@ -29,7 +29,7 @@ class GameUtilsKtTest {
     }
 
     private fun test(powerMap: Map<String, Int>, expectedPoints: Map<String, Int>) {
-        val result = calculateScore(victoryPointsDefinition, powerMap)
+        val result = calculateScore(victoryPointsDefinition, Rankings.build(powerMap))
         assertThat(result).isEqualTo(expectedPoints)
     }
 }

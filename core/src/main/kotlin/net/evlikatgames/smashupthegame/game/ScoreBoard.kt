@@ -6,12 +6,12 @@ class ScoreBoard<P : Any>(players: List<P>, private val winPoints: Int) {
 
     private val scores = players.associate { it to 0 }.toMutableMap()
 
-    fun gainVictoryPoints(player: P, score: Int): P? {
-        addVictoryPoints(player, score)
+    fun gainVictoryPoints(player: P, scoreValue: Int): P? {
+        addVictoryPoints(player, scoreValue)
         return winner
     }
 
-    fun gainVictoryPoints(scores: Map<P, Int>): P? {
+    fun gainVictoryPoints(scores: Scores<P>): P? {
         scores.forEach { player, score -> addVictoryPoints(player, score) }
         return winner
     }
