@@ -14,7 +14,7 @@ class TheMothership : BaseCard(breakPoints = 20, victoryPoints = VictoryPointsDe
 
         val minionsByController = ctx.baseByCard(this)
             .minionsInPlay
-            .filter { it.minion.basePower <= 3 }
+            .filter { it.card.basePower <= 3 }
             .groupBy { it.controller }
 
         rankings.winners.forEach { player ->

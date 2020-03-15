@@ -6,7 +6,8 @@ import net.evlikatgames.smashupthegame.Player
 import net.evlikatgames.smashupthegame.card.BaseCard
 import net.evlikatgames.smashupthegame.card.FactionCard
 import net.evlikatgames.smashupthegame.card.MinionCard
-import net.evlikatgames.smashupthegame.effect.OngoingEffect
+import net.evlikatgames.smashupthegame.card.OngoingActionCard
+import net.evlikatgames.smashupthegame.effect.Effect
 import net.evlikatgames.smashupthegame.game.BaseState
 import net.evlikatgames.smashupthegame.game.GameObject
 import net.evlikatgames.smashupthegame.resource.PlayerResource
@@ -20,13 +21,38 @@ class PlaceTargetMinionOnTheBottomOfItsOwnerDeck(source: GameObject, val targetM
 class PlaceTargetMinionCardOnTheBottomOfItsOwnerDeck(source: GameObject, val targetMinion: MinionCard) : Command(source)
 class RevealTopPlayerDeckCard(source: GameObject, val targetPlayer: Player) : Command(source)
 class DestroyTargetMinion(source: GameObject, val targetMinion: MinionState) : Command(source)
+class DestroyMinions(source: GameObject, val minions: List<MinionState>) : Command(source)
+class AttachOngoingActionToTargetMinion(source: GameObject, val ongoingAction: OngoingActionCard<*, *>, val targetMinion: MinionState) : Command(source)
+class AttachOngoingActionToTargetBase(source: GameObject, val ongoingAction: OngoingActionCard<*, *>, val targetBase: BaseState) : Command(source)
 class DestroyTargetOngoingAction(source: GameObject, val targetOngoingAction: OngoingActionState) : Command(source)
 class PlayerDrawsCards(source: GameObject, val targetPlayer: Player, val numberOfCards: Int) : Command(source)
 class ShuffleCardToItsOwnerDeck(source: GameObject, val targetCard: FactionCard) : Command(source)
 class TargetPlayerDiscardsTargetCard(source: GameObject, val targetPlayer: Player, val targetCard: FactionCard) : Command(source)
-class ApplyOngoingEffectOnTargetMinion(
+class ApplyEffectOnTargetMinion(
     source: GameObject,
-    val ongoingEffect: OngoingEffect,
+    val effect: Effect,
+    val targetMinion: MinionState
+) : Command(source)
+
+class ApplyEffectOnTargetBase(
+    source: GameObject,
+    val effect: Effect,
+    val targetBase: BaseState
+) : Command(source)
+
+class ApplyEffectOnMinions(
+    source: GameObject,
+    val effect: Effect,
+    val minions: List<MinionState>
+) : Command(source)
+
+class CancelEffect(
+    source: GameObject,
+    val effect: Effect
+) : Command(source)
+
+class RemoveAllEffectsBySourceFromTargetMinion(
+    source: GameObject,
     val targetMinion: MinionState
 ) : Command(source)
 

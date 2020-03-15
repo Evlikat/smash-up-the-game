@@ -1,9 +1,6 @@
 package net.evlikatgames.smashupthegame.game
 
-import net.evlikatgames.smashupthegame.MinionState
-import net.evlikatgames.smashupthegame.Player
-import net.evlikatgames.smashupthegame.PlayerHand
-import net.evlikatgames.smashupthegame.Zone
+import net.evlikatgames.smashupthegame.*
 import net.evlikatgames.smashupthegame.card.*
 import net.evlikatgames.smashupthegame.messaging.*
 import net.evlikatgames.smashupthegame.resource.PlayerResourcePool
@@ -90,7 +87,7 @@ class Game(
             val card = askToPlay(currentPlayer) ?: break
             val resources = when (card) {
                 is MinionCard -> pool.selectResourceFor(card)
-                is ActionCard -> pool.selectResourceFor(card)
+                is ActionCard<*, *> -> pool.selectResourceFor(card)
                 else -> TODO("Unknown card type")
             }
             val consumed = when {
@@ -137,7 +134,7 @@ class Game(
             // TODO:
             //chosenBaseState.actionsInPlay.forEach { it.onMessage(AfterBaseScores(chosenBaseState), this) }
 
-            chosenBaseState.minionsInPlay.forEach { discardFactionCard(it.minion) }
+            chosenBaseState.minionsInPlay.forEach { discardFactionCard(it.card) }
             chosenBaseState.actionsInPlay.forEach { discardFactionCard(it.action) }
 
             discardBaseCard(chosenBaseCard)
@@ -177,7 +174,7 @@ class Game(
         }
     }
 
-    override fun minionState(minionCard: MinionCard): MinionState? = minionsInPlay().find { it.minion == minionCard }
+    override fun minionState(minionCard: MinionCard): MinionState? = minionsInPlay().find { it.card == minionCard }
 
     override fun minionsInPlay(): List<MinionState> = activeBases.flatMap { it.minionsInPlay }
 
@@ -192,6 +189,18 @@ class Game(
 
     override fun cardsInPlayerDiscardPile(player: Player): List<FactionCard> {
         return discardPiles[player]!!.visibleCards
+    }
+
+    override fun ongoingActionState(ongoingAction: OngoingActionCard<*, *>): OngoingActionState {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun minionOfOngoingEffect(ongoingAction: OngoingActionCard<*, *>): MinionState {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun baseOfOngoingEffect(ongoingAction: OngoingActionCard<*, *>): MinionState {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     override fun baseOfMinion(minionCard: MinionCard): BaseState = cardLocations[minionCard]
@@ -328,20 +337,20 @@ class Game(
 
     private fun handleDestroyMinion(command: DestroyTargetMinion) {
         val minionToDestroy = command.targetMinion
-        val currentMinionLocation = cardLocations[minionToDestroy.minion]
+        val currentMinionLocation = cardLocations[minionToDestroy.card]
         when (currentMinionLocation) {
             is Base -> {
                 try {
                     val minionsInPlay = minionsInPlay()
                     minionsInPlay.forEach {
-                        it.minion.onMessage(BeforeMinionDestroyed(command.source, minionToDestroy), this)
+                        it.card.onMessage(BeforeMinionDestroyed(command.source, minionToDestroy), this)
                     }
 
-                    discardFactionCard(minionToDestroy.minion)
+                    discardFactionCard(minionToDestroy.card)
                     cleanUpMinionOngoingEffects(command.targetMinion)
 
                     minionsInPlay.forEach {
-                        it.minion.onMessage(AfterMinionDestroyed(command.source, minionToDestroy), this)
+                        it.card.onMessage(AfterMinionDestroyed(command.source, minionToDestroy), this)
                     }
                 } catch (ignored: InterruptException) {
                 }

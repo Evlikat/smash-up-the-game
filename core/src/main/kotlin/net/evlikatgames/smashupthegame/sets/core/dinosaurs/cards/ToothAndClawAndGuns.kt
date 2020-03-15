@@ -1,14 +1,14 @@
-package net.evlikatgames.smashupthegame.sets.core.aliens.cards
+package net.evlikatgames.smashupthegame.sets.core.dinosaurs.cards
 
 import net.evlikatgames.smashupthegame.MinionState
 import net.evlikatgames.smashupthegame.Player
-import net.evlikatgames.smashupthegame.card.InstantActionCard
+import net.evlikatgames.smashupthegame.card.MinionOngoingActionCard
 import net.evlikatgames.smashupthegame.card.MultipleTargetChoices
+import net.evlikatgames.smashupthegame.card.OngoingActionCard
 import net.evlikatgames.smashupthegame.card.SingleTargetSelected
 import net.evlikatgames.smashupthegame.game.GameContext
-import net.evlikatgames.smashupthegame.messaging.ReturnTargetMinionToItsOwnerHand
 
-class BeamUp : InstantActionCard<MultipleTargetChoices, SingleTargetSelected<MinionState>>() {
+class ToothAndClawAndGuns : MinionOngoingActionCard<MultipleTargetChoices>() {
 
     override fun availableTargets(
         player: Player,
@@ -17,10 +17,5 @@ class BeamUp : InstantActionCard<MultipleTargetChoices, SingleTargetSelected<Min
         ctx: GameContext
     ): MultipleTargetChoices {
         return MultipleTargetChoices(ctx.minionsInPlay())
-    }
-
-    override fun play(player: Player, target: SingleTargetSelected<MinionState>, ctx: GameContext) {
-        val targetMinion = target.gameObject
-        ctx.sendCommand(ReturnTargetMinionToItsOwnerHand(this, targetMinion))
     }
 }

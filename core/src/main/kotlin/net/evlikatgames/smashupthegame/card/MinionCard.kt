@@ -13,6 +13,9 @@ abstract class MinionCard(
 
     final override fun onMessage(message: Message, ctx: GameContext) {
         when (message) {
+            is StartTurn -> {
+                atStartOfTheTurn(message, ctx)
+            }
             is AfterMinionIsPlayed -> {
                 if (this == message.minion) {
                     onEntersPlay(message, ctx)
@@ -34,15 +37,29 @@ abstract class MinionCard(
                     onAnotherMinionDestroyed(message, ctx)
                 }
             }
+            is BeforeMinionIsMoved -> {
+                if (this == message.minion) {
+                    onMovingToAnotherBase(message, ctx)
+                } else {
+                    onAnotherMinionMovingToAnotherBase(message, ctx)
+                }
+            }
+            is AfterMinionIsMoved -> {
+                if (this == message.minion) {
+                    onMovedToAnotherBase(message, ctx)
+                } else {
+                    onAnotherMinionMovedToAnotherBase(message, ctx)
+                }
+            }
             is BeforeBaseScores -> {
-                if (ctx.baseOfMinion(this) == message.targetBaseState.base) {
+                if (ctx.baseOfMinion(this) == message.targetBaseState) {
                     onBaseScoring(message, ctx)
                 } else {
                     onAnotherBaseScoring(message, ctx)
                 }
             }
             is AfterBaseScores -> {
-                if (ctx.baseOfMinion(this) == message.targetBaseState.base) {
+                if (ctx.baseOfMinion(this) == message.targetBaseState) {
                     onBaseScored(message, ctx)
                 } else {
                     onAnotherBaseScored(message, ctx)
@@ -50,6 +67,14 @@ abstract class MinionCard(
             }
         }
     }
+
+    open fun atStartOfTheTurn(message: StartTurn, ctx: GameContext) {}
+
+    open fun onMovingToAnotherBase(message: BeforeMinionIsMoved, ctx: GameContext) {}
+    open fun onMovedToAnotherBase(message: AfterMinionIsMoved, ctx: GameContext) {}
+
+    open fun onAnotherMinionMovingToAnotherBase(message: BeforeMinionIsMoved, ctx: GameContext) {}
+    open fun onAnotherMinionMovedToAnotherBase(message: AfterMinionIsMoved, ctx: GameContext) {}
 
     open fun onEntersPlay(message: AfterMinionIsPlayed, ctx: GameContext) {}
     open fun onAnotherMinionEntersPlay(message: AfterMinionIsPlayed, ctx: GameContext) {}

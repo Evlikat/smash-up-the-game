@@ -1,5 +1,3 @@
 package net.evlikatgames.smashupthegame.card
 
-abstract class InstantActionCard(numberOfTargets: Int = 1) : ActionCard(numberOfTargets) {
-
-}
+abstract class InstantActionCard<AT : ActionTargetChoice, ST : SelectedTarget> : ActionCard<AT, ST>()

@@ -10,7 +10,7 @@ class Collector: MinionCard(basePower = 2) {
 
     override fun onEntersPlay(message: AfterMinionIsPlayed, ctx: GameContext) {
         val anotherMinionsOnBase = ctx.baseOfMinion(this).minionsInPlay
-        val validTargetMinions = anotherMinionsOnBase.filter { it.minion !is Collector && it.effectivePower <= 3 }
+        val validTargetMinions = anotherMinionsOnBase.filter { it.card !is Collector && it.effectivePower <= 3 }
         if (validTargetMinions.isEmpty()) {
             return
         }

@@ -7,7 +7,7 @@ import net.evlikatgames.smashupthegame.effect.BonusPower
 import net.evlikatgames.smashupthegame.effect.CardOngoingEffect
 import net.evlikatgames.smashupthegame.game.GameContext
 import net.evlikatgames.smashupthegame.game.GameObject
-import net.evlikatgames.smashupthegame.messaging.ApplyOngoingEffectOnTargetMinion
+import net.evlikatgames.smashupthegame.messaging.ApplyEffectOnTargetMinion
 import net.evlikatgames.smashupthegame.sets.core.robots.cards.MICROBOT
 
 class BonusPowerToMicrobots(private val minionSource: MinionCard) : CardOngoingEffect {
@@ -20,9 +20,9 @@ class BonusPowerToMicrobots(private val minionSource: MinionCard) : CardOngoingE
 
     override fun enable(objects: List<GameObject>, ctx: GameContext) {
         objects.forEach {
-            ctx.sendCommand(ApplyOngoingEffectOnTargetMinion(
+            ctx.sendCommand(ApplyEffectOnTargetMinion(
                 source = minionSource,
-                ongoingEffect = BonusPower(bonusPower = 1),
+                effect = BonusPower(bonusPower = 1),
                 targetMinion = it as MinionState
             ))
         }

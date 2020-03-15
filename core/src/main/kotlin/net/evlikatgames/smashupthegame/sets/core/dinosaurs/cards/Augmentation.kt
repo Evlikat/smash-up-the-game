@@ -1,14 +1,15 @@
-package net.evlikatgames.smashupthegame.sets.core.aliens.cards
+package net.evlikatgames.smashupthegame.sets.core.dinosaurs.cards
 
 import net.evlikatgames.smashupthegame.MinionState
 import net.evlikatgames.smashupthegame.Player
 import net.evlikatgames.smashupthegame.card.InstantActionCard
 import net.evlikatgames.smashupthegame.card.MultipleTargetChoices
 import net.evlikatgames.smashupthegame.card.SingleTargetSelected
+import net.evlikatgames.smashupthegame.effect.BonusPowerUntilEndOfTurn
 import net.evlikatgames.smashupthegame.game.GameContext
-import net.evlikatgames.smashupthegame.messaging.PlaceTargetMinionOnTheBottomOfItsOwnerDeck
+import net.evlikatgames.smashupthegame.messaging.ApplyEffectOnTargetMinion
 
-class Disintegrator : InstantActionCard<MultipleTargetChoices, SingleTargetSelected<MinionState>>() {
+class Augmentation : InstantActionCard<MultipleTargetChoices, SingleTargetSelected<MinionState>>() {
 
     override fun availableTargets(
         player: Player,
@@ -16,11 +17,16 @@ class Disintegrator : InstantActionCard<MultipleTargetChoices, SingleTargetSelec
         previouslySelectedObjects: SingleTargetSelected<MinionState>,
         ctx: GameContext
     ): MultipleTargetChoices {
-        return MultipleTargetChoices(ctx.minionsInPlay().filter { it.effectivePower <= 3 })
+        return MultipleTargetChoices(ctx.minionsInPlay())
     }
 
     override fun play(player: Player, target: SingleTargetSelected<MinionState>, ctx: GameContext) {
-        val targetMinion = target.gameObject
-        ctx.sendCommand(PlaceTargetMinionOnTheBottomOfItsOwnerDeck(this, targetMinion))
+        ctx.sendCommand(
+            ApplyEffectOnTargetMinion(
+                source = this,
+                effect = BonusPowerUntilEndOfTurn(bonusPower = 4),
+                targetMinion = target.gameObject
+            )
+        )
     }
 }

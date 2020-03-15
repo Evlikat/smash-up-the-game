@@ -1,10 +1,12 @@
 package net.evlikatgames.smashupthegame.game
 
 import net.evlikatgames.smashupthegame.MinionState
+import net.evlikatgames.smashupthegame.OngoingActionState
 import net.evlikatgames.smashupthegame.Player
 import net.evlikatgames.smashupthegame.card.BaseCard
 import net.evlikatgames.smashupthegame.card.FactionCard
 import net.evlikatgames.smashupthegame.card.MinionCard
+import net.evlikatgames.smashupthegame.card.OngoingActionCard
 import net.evlikatgames.smashupthegame.messaging.Command
 import net.evlikatgames.smashupthegame.messaging.Intention
 
@@ -52,6 +54,12 @@ interface GameContext {
     fun baseByCard(baseCard: BaseCard): BaseState
 
     fun baseOfMinion(minionCard: MinionCard): BaseState
+
+    fun ongoingActionState(ongoingAction: OngoingActionCard<*, *>): OngoingActionState
+
+    fun minionOfOngoingEffect(ongoingAction: OngoingActionCard<*, *>): MinionState
+
+    fun baseOfOngoingEffect(ongoingAction: OngoingActionCard<*, *>): MinionState
 
     fun playerHand(targetPlayer: Player): Collection<FactionCard>
 }

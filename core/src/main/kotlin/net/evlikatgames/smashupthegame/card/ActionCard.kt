@@ -2,11 +2,21 @@ package net.evlikatgames.smashupthegame.card
 
 import net.evlikatgames.smashupthegame.Player
 import net.evlikatgames.smashupthegame.game.GameContext
-import net.evlikatgames.smashupthegame.game.GameObject
 
-abstract class ActionCard(val numberOfTargets: Int = 1) : FactionCard() {
+abstract class ActionCard<AT : ActionTargetChoice, ST : SelectedTarget> : FactionCard() {
 
-    abstract fun availableTargets(player: Player, targetIndex: Int, previouslySelectedObjects: List<GameObject>, ctx: GameContext): Collection<GameObject>
+    open fun numberOfTargets(ctx: GameContext): Int = 1
 
-    abstract fun play(player: Player, target: List<GameObject>, ctx: GameContext)
+    abstract fun availableTargets(
+        player: Player,
+        targetIndex: Int,
+        previouslySelectedObjects: ST,
+        ctx: GameContext
+    ): AT
+
+    abstract fun play(
+        player: Player,
+        target: ST,
+        ctx: GameContext
+    )
 }

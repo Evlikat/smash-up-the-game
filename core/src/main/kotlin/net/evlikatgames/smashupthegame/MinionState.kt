@@ -8,5 +8,5 @@ interface MinionState: GameObject {
     val effectivePower: Int
     val effectiveTribes: Set<String>
     val controller: Player
-    val minion: MinionCard
+    val card: MinionCard
 }

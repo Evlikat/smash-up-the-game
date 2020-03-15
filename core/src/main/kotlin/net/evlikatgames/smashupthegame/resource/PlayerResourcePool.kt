@@ -34,7 +34,7 @@ class PlayerResourcePool {
             ?.let { listOf(it) } ?: emptyList()
     }
 
-    fun selectResourceFor(actionCard: ActionCard): List<PlayerActionResource> {
+    fun selectResourceFor(actionCard: ActionCard<*, *>): List<PlayerActionResource> {
         return if (actionResources.isEmpty()) {
             emptyList()
         } else {

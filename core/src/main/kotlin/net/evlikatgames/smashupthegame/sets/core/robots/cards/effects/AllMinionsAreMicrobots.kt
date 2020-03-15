@@ -6,7 +6,7 @@ import net.evlikatgames.smashupthegame.effect.CardOngoingEffect
 import net.evlikatgames.smashupthegame.effect.TemporaryTribe
 import net.evlikatgames.smashupthegame.game.GameContext
 import net.evlikatgames.smashupthegame.game.GameObject
-import net.evlikatgames.smashupthegame.messaging.ApplyOngoingEffectOnTargetMinion
+import net.evlikatgames.smashupthegame.messaging.ApplyEffectOnTargetMinion
 import net.evlikatgames.smashupthegame.sets.core.robots.cards.MICROBOT
 
 class AllMinionsAreMicrobots(private val minionSource: MinionCard) : CardOngoingEffect {
@@ -19,9 +19,9 @@ class AllMinionsAreMicrobots(private val minionSource: MinionCard) : CardOngoing
 
     override fun enable(objects: List<GameObject>, ctx: GameContext) {
         objects.forEach {
-            ctx.sendCommand(ApplyOngoingEffectOnTargetMinion(
+            ctx.sendCommand(ApplyEffectOnTargetMinion(
                 source = minionSource,
-                ongoingEffect = TemporaryTribe(MICROBOT),
+                effect = TemporaryTribe(MICROBOT),
                 targetMinion = it as MinionState
             ))
         }
