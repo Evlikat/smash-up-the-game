@@ -24,11 +24,11 @@ interface GameContext {
 
     fun <T : GameObject> askPlayerChooseTarget(player: Player,
                                                pendingIntention: Intention,
-                                               validTargets: List<T>): T
+                                               validTargets: Collection<T>): T
 
     fun <T : GameObject> askPlayerChooseTargetOrDecline(player: Player,
                                                         pendingIntention: Intention,
-                                                        validTargets: List<T>): T?
+                                                        validTargets: Collection<T>): T?
 
     fun <T : GameObject> askPlayerChooseSomeTargets(
         player: Player,

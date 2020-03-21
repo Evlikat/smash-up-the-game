@@ -3,16 +3,21 @@ package net.evlikatgames.smashupthegame.sets.core
 import net.evlikatgames.smashupthegame.card.FactionCard
 import net.evlikatgames.smashupthegame.sets.core.aliens.cards.*
 import net.evlikatgames.smashupthegame.sets.core.dinosaurs.cards.*
+import net.evlikatgames.smashupthegame.sets.core.pirates.cards.*
 import net.evlikatgames.smashupthegame.sets.core.robots.cards.*
 
 sealed class Faction {
-    open val cards: List<FactionCard> get() = emptyList()
+    open val cards: List<FactionCard> = emptyList()
 }
+
+val FACTIONS = listOf(
+    Zombie, Aliens, Wizards, Pirates, Ninjas, Tricksters, Dinosaurs, Robots
+)
 
 object Zombie : Faction()
 object Aliens : Faction() {
-    override val cards: List<FactionCard>
-        get() = deck {
+    override val cards: List<FactionCard> by lazy {
+        deck {
             1 x ::SupremeOverlord
             2 x ::Invader
             3 x ::Scout
@@ -26,15 +31,32 @@ object Aliens : Faction() {
             1 x ::Probe
             1 x ::Terraforming
         }
+    }
 }
 
 object Wizards : Faction()
-object Pirates : Faction()
+object Pirates : Faction() {
+    override val cards: List<FactionCard> by lazy {
+        deck {
+            1 x ::PirateKing
+            2 x ::Buccaneer
+            3 x ::SaucyWench
+            4 x ::FirstMate
+            2 x ::Broadside
+            1 x ::Cannon
+            2 x ::Dinghy
+            1 x ::FullSail
+            1 x ::Powderkeg
+            1 x ::SeaDogs
+        }
+    }
+}
+
 object Ninjas : Faction()
 object Tricksters : Faction()
 object Robots : Faction() {
-    override val cards: List<FactionCard>
-        get() = deck {
+    override val cards: List<FactionCard> by lazy {
+        deck {
             1 x ::NukeBot
             2 x ::WarBot
             3 x ::HoverBot
@@ -46,11 +68,12 @@ object Robots : Faction() {
             2 x ::MicrobotReclaimer
             2 x ::TechCenter
         }
+    }
 }
 
 object Dinosaurs : Faction() {
-    override val cards: List<FactionCard>
-        get() = deck {
+    override val cards: List<FactionCard>by lazy {
+        deck {
             1 x ::KingRex
             2 x ::Laseratops
             3 x ::ArmorStego
@@ -64,6 +87,7 @@ object Dinosaurs : Faction() {
             1 x ::Upgrade
             1 x ::WildlifePreserve
         }
+    }
 }
 
 private typealias CardFactory = () -> FactionCard

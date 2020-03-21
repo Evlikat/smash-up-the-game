@@ -221,7 +221,7 @@ class Game(
     override fun <T : GameObject> askPlayerChooseTarget(
         player: Player,
         pendingIntention: Intention,
-        validTargets: List<T>
+        validTargets: Collection<T>
     ): T {
         if (validTargets.isEmpty()) {
             throw IllegalArgumentException("No valid targets")
@@ -236,7 +236,7 @@ class Game(
     override fun <T : GameObject> askPlayerChooseTargetOrDecline(
         player: Player,
         pendingIntention: Intention,
-        validTargets: List<T>
+        validTargets: Collection<T>
     ): T? {
         if (validTargets.isEmpty()) {
             throw IllegalArgumentException("No valid targets")

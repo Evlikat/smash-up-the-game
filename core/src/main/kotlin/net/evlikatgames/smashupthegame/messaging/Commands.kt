@@ -62,6 +62,12 @@ class MoveTargetMinionToTargetBase(
     val targetBase: BaseState
 ) : Command(source)
 
+class MoveMinionsToTargetBase(
+    source: GameObject,
+    val minions: List<MinionState>,
+    val targetBase: BaseState
+) : Command(source)
+
 // TODO: shuffle old base - not discard
 class SwapBases(
     source: GameObject,
